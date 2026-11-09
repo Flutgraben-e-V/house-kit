@@ -1,0 +1,5 @@
+#!/bin/sh
+# The house gates run on this machine before every push; there is no CI.
+# Read the verdict line it prints, never the exit code alone.
+pnpm gates || { echo "gates: FAILED (see above). Fix it, never bypass it."; exit 1; }
+echo "gates: passed"

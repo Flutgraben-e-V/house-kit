@@ -1,0 +1,26 @@
+/* The house token contract, layer 1: Tailwind utilities.
+ *
+ * A project imports this once, after Tailwind, and gives the values in its own
+ * :root (the `--house-*` names, listed in src/tokens.ts TOKEN_CONTRACT):
+ *
+ *   @import 'tailwindcss';
+ *   @import '@flutgraben/house-kit/theme.css';
+ *   :root { --house-bg: …; --house-fg: …; … }
+ *
+ * The kit fixes the NAMES, the project fixes the VALUES: every house project
+ * speaks the same utilities (bg-bg, text-fg, font-display …) with its own look.
+ * `house-kit check` fails when a project leaves a contract name undefined.
+ */
+
+/* The kit's own components carry class names Tailwind must see. */
+@source "./src";
+
+@theme inline {
+  --color-bg: var(--house-bg);
+  --color-fg: var(--house-fg);
+  --color-muted: var(--house-muted);
+  --color-accent: var(--house-accent);
+  --color-line: var(--house-line);
+  --font-body: var(--house-font-body);
+  --font-display: var(--house-font-display);
+}

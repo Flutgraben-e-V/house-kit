@@ -1,0 +1,15 @@
+node_modules
+.next/
+/out/
+/build
+coverage/
+next-env.d.ts
+*.tsbuildinfo
+.env*
+.DS_Store
+
+# pnpm-lock.yaml is the only lockfile that ships.
+bun.lock
+bun.lockb
+package-lock.json
+yarn.lock

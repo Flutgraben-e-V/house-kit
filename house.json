@@ -1,0 +1,22 @@
+{
+  "$comment": "The house pins: the versions every house project runs. `house-kit init` writes them into a new project's package.json and `house-kit check` fails when a project drifts from them. Change a pin here, release the kit, and every project is told at its next check.",
+  "node": ">=24.0.0 <25",
+  "packageManager": "pnpm@10.33.0",
+  "dependencies": {
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "next-intl": "4.13.4",
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "eslint": "^10.8.0",
+    "tailwindcss": "^4.3.3",
+    "@types/node": "^24.13.5",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4"
+  },
+  "$why_exact": "next: the newest version Hostinger's build box (glibc 2.28) can build. react, react-dom: the pair next 16.2.12 is tested with. next-intl: the version the house apps run; a fresh range install pulled 4.14, which deprecates setRequestLocale (seen 2026-11-09). Raise them only together, after the platform checks.",
+  "exact": ["next", "react", "react-dom", "next-intl"]
+}
