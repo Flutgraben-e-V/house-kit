@@ -16,7 +16,6 @@ import { fileURLToPath } from 'node:url';
 const KIT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const KIT = JSON.parse(readFileSync(join(KIT_DIR, 'package.json'), 'utf8'));
 const HOUSE = JSON.parse(readFileSync(join(KIT_DIR, 'house.json'), 'utf8'));
-const KIT_REPO = 'https://github.com/Flutgraben-e-V/house-kit.git';
 
 const [command, ...args] = process.argv.slice(2);
 if (command === 'init') init(args);
@@ -44,7 +43,7 @@ function init(list) {
   const target = resolve(list.find((a, i) => !a.startsWith('--') && !list[i - 1]?.startsWith('--')) ?? '.');
   const name = flag(list, '--name') ?? basename(target);
   const [major, minor] = KIT.version.split('.');
-  const kitSpec = flag(list, '--kit') ?? `github:Flutgraben-e-V/house-kit#semver:^${major}.${minor}.0`;
+  const kitSpec = flag(list, '--kit') ?? `^${major}.${minor}.0`;
 
   if (existsSync(join(target, 'package.json'))) {
     console.error(`house-kit init: ${target} already has a package.json; nothing written.`);
@@ -151,15 +150,14 @@ function check() {
 
   // 5. A newer kit: said, never failed (updating is a choice, not a defect).
   try {
-    const tags = execFileSync('git', ['ls-remote', '--tags', '--refs', KIT_REPO], { encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'] })
-      .split('\n').map((l) => l.match(/refs\/tags\/v?(\d+)\.(\d+)\.(\d+)$/)).filter(Boolean).map((m) => m.slice(1, 4).map(Number));
-    const newest = tags.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]).at(-1);
+    const newest = execFileSync('npm', ['view', KIT.name, 'version'], { encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'] })
+      .trim().split('.').map(Number);
     const mine = KIT.version.split('.').map(Number);
-    if (newest && (newest[0] - mine[0] || newest[1] - mine[1] || newest[2] - mine[2]) > 0) {
+    if (newest.length === 3 && (newest[0] - mine[0] || newest[1] - mine[1] || newest[2] - mine[2]) > 0) {
       console.log(`ℹ house-kit ${newest.join('.')} exists; this project runs ${KIT.version}. Update: pnpm update @flutgraben/house-kit`);
     } else console.log(`✓ house-kit ${KIT.version} is the newest.`);
   } catch {
-    console.log('ℹ could not reach the kit repo to look for a newer version (offline, or no read access).');
+    console.log('ℹ could not reach the npm registry to look for a newer kit (offline?).');
   }
 
   verdict(failed);

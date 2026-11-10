@@ -1,0 +1,10 @@
+# The one recurring job a house project runs on GitHub: a weekly look for a newer
+# house kit. It only opens a pull request; nothing merges or deploys by itself.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    allow:
+      - dependency-name: "@flutgraben/house-kit"

@@ -16,10 +16,8 @@ in the `house-code` plugin; this kit carries the code that applies them.
 
 ## Start a project
 
-Needs read access to this repo, and git signed in to GitHub.
-
 ```bash
-pnpm dlx github:Flutgraben-e-V/house-kit init my-project
+pnpm dlx @flutgraben/house-kit init my-project
 ```
 
 Then `cd my-project`, `git init`, `pnpm install`, `pnpm gates`, `pnpm dev`.
@@ -37,15 +35,16 @@ exists and when a project has drifted from a house pin.
 
 1. Make the change on a branch, with a changeset: `pnpm changeset`.
 2. Merge the pull request.
-3. On `main`, on your machine: `pnpm release`, then
-   `git push --follow-tags`. That raises the version, writes the changelog and
-   tags `vX.Y.Z`; projects pick the tag up by version range.
+3. On `main`, on your machine: `pnpm changeset version`, commit the raised
+   version and changelog, then `pnpm release` (publishes to npm, needs your npm
+   sign-in with two-factor) and `git push --follow-tags`.
 
-There is no CI and no publish job: a release is that one local command.
+There is no CI and no publish job: a release is run by hand on one machine.
+Projects pick the new version up by range; their Dependabot opens the update.
 
 ## Hostinger
 
 A project builds with `pnpm build:hostinger` and starts with
-`pnpm start:hostinger`. Installing this private package on the build box needs a
-read-only GitHub key for this repo, set on the site. A raised Next.js pin must
+`pnpm start:hostinger`. The kit is a public npm package, so the build box
+installs it with no key on the site. A raised Next.js pin must
 pass the glibc check in house-code's `platform.md` (H1) before it is released.
