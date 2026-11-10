@@ -76,6 +76,7 @@ function init(list) {
     },
     dependencies: { '@flutgraben/house-kit': kitSpec, ...HOUSE.dependencies },
     devDependencies: { ...HOUSE.devDependencies },
+    'house-kit': { colours: ['src/app/globals.css'] },
   };
   writeFileSync(join(target, 'package.json'), JSON.stringify(pkg, null, 2) + '\n');
 
@@ -107,31 +108,31 @@ function check() {
   if (pkg.packageManager !== HOUSE.packageManager) drift.push(`packageManager: ${pkg.packageManager ?? 'missing'}, the house pin is ${HOUSE.packageManager}`);
   report('pins', drift, failed);
 
-  // 2. Tokens: the stylesheet that imports the kit theme defines every contract name.
-  const contract = [...readFileSync(join(KIT_DIR, 'src/tokens.ts'), 'utf8').matchAll(/'(--house-[a-z0-9-]+)'/g)].map((m) => m[1]);
-  const css = files.filter((f) => f.endsWith('.css'));
-  const home = css.find((f) => readFileSync(f, 'utf8').includes('house-kit/theme.css'));
-  const tokenProblems = [];
-  if (!home) tokenProblems.push('no stylesheet imports @flutgraben/house-kit/theme.css');
-  else {
-    const text = readFileSync(home, 'utf8');
-    for (const name of contract) if (!new RegExp(`${name}\\s*:`).test(text)) tokenProblems.push(`${rel(home)} does not define ${name}`);
+  // 2. Colours: raw colour values live only in the project's own colour files, or the
+  //    project's own lint rule judges them. The kit never fixes names or values: each
+  //    project keeps its own design system (Sina, 2026-11-10: practice only).
+  const own = pkg['house-kit'] ?? {};
+  const colourProblems = [];
+  if (own.colourLint) {
+    const config = ['eslint.config.mjs', 'eslint.config.js'].map((n) => join(root, n)).find(existsSync);
+    if (!config || !readFileSync(config, 'utf8').includes(own.colourLint)) colourProblems.push(`house-kit.colourLint names ${own.colourLint}, which the ESLint config does not switch on`);
+    else console.log(`ℹ colours are judged by this project's own lint rule ${own.colourLint}.`);
+  } else {
+    const homes = (own.colours ?? []).map((c) => join(root, c));
+    if (!homes.length) colourProblems.push('package.json "house-kit" names neither colours (the files that hold colour values) nor colourLint (the rule that judges them)');
+    for (const h of homes) if (!existsSync(h)) colourProblems.push(`house-kit.colours names ${rel(h)}, which does not exist`);
+    const RAW = /#[0-9a-fA-F]{3,8}\b|\b(rgba?|hsla?)\(/;
+    for (const f of files) {
+      if (homes.includes(f) || !/\.(css|tsx)$/.test(f)) continue;
+      readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+        const code = line.replace(/\/\*.*?\*\/|\/\/.*$/g, '');
+        if (RAW.test(code) && (f.endsWith('.css') || /className|style|color/i.test(code))) colourProblems.push(`${rel(f)}:${i + 1}  ${line.trim()}`);
+      });
+    }
   }
-  report('tokens', tokenProblems, failed);
+  report('colours', colourProblems, failed);
 
-  // 3. Raw colours: only the token home may hold them.
-  const RAW = /#[0-9a-fA-F]{3,8}\b|\b(rgba?|hsla?)\(/;
-  const raw = [];
-  for (const f of files) {
-    if (f === home || !/\.(css|tsx)$/.test(f)) continue;
-    readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
-      const code = line.replace(/\/\*.*?\*\/|\/\/.*$/g, '');
-      if (RAW.test(code) && (f.endsWith('.css') || /className|style|color/i.test(code))) raw.push(`${rel(f)}:${i + 1}  ${line.trim()}`);
-    });
-  }
-  report('raw-colours', raw, failed);
-
-  // 4. Languages: every active language holds every key English holds.
+  // 3. Languages: every active language holds every key English holds.
   const routing = join(src, 'i18n/routing.ts');
   const messages = join(src, 'messages');
   const langProblems = [];
@@ -148,7 +149,7 @@ function check() {
   }
   report('languages', langProblems, failed);
 
-  // 5. A newer kit: said, never failed (updating is a choice, not a defect).
+  // 4. A newer kit: said, never failed (updating is a choice, not a defect).
   try {
     const newest = execFileSync('npm', ['view', KIT.name, 'version'], { encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'] })
       .trim().split('.').map(Number);

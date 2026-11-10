@@ -1,38 +1,39 @@
 @import 'tailwindcss';
-@import '@flutgraben/house-kit/theme.css';
 
-/* This project's look: the values for the house token contract.
-   The names are fixed by the kit (src/tokens.ts TOKEN_CONTRACT);
-   the values are this project's own. Raw colours live here and nowhere else. */
+/* This project's look, and only this project's: rename, add or remove any of
+   these as the design asks. The house practice is only that raw colours live
+   in this file (package.json "house-kit".colours) and nowhere else. */
 :root {
-  --house-bg: #fafaf7;
-  --house-fg: #1a1a1a;
-  --house-muted: #6b6b66;
-  --house-accent: #1a1a1a;
-  --house-line: #d9d9d4;
-  --house-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --house-font-display: var(--house-font-body);
-  --house-fs-small: 0.875rem;
-  --house-fs-body: 1rem;
-  --house-fs-h3: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
-  --house-fs-h2: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
-  --house-fs-h1: clamp(1.875rem, 1.4rem + 2vw, 3rem);
-  --house-dur-fast: 0.15s;
-  --house-dur-slow: 0.3s;
+  --bg: #fafaf7;
+  --fg: #1a1a1a;
+  --muted: #6b6b66;
+  --line: #d9d9d4;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fs-body: 1rem;
+  --fs-h1: clamp(1.875rem, 1.4rem + 2vw, 3rem);
+  --dur-fast: 0.15s;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --house-bg: #111110;
-    --house-fg: #f2f2ee;
-    --house-muted: #9a9a93;
-    --house-accent: #f2f2ee;
-    --house-line: #2a2a28;
+    --bg: #111110;
+    --fg: #f2f2ee;
+    --muted: #9a9a93;
+    --line: #2a2a28;
   }
+}
+
+/* Tailwind utilities from the values above: bg-bg, text-fg, text-muted, border-line, font-sans. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --font-sans: var(--font-sans);
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
 }

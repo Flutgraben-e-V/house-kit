@@ -1,6 +1,6 @@
 {
   "name": "@flutgraben/house-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The house kit: the stack, the build settings, the checks and the shared contracts every house web project installs.",
   "type": "module",
   "license": "MIT",
@@ -20,8 +20,6 @@
     "./eslint": "./eslint.config.mjs",
     "./postcss": "./postcss.config.mjs",
     "./tsconfig.json": "./tsconfig.base.json",
-    "./theme.css": "./theme.css",
-    "./tokens": "./src/tokens.ts",
     "./utils": "./src/utils.ts",
     "./house.json": "./house.json",
     "./package.json": "./package.json"
@@ -35,7 +33,6 @@
     "eslint.config.mjs",
     "postcss.config.mjs",
     "tsconfig.base.json",
-    "theme.css",
     "house.json"
   ],
   "scripts": {

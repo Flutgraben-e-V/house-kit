@@ -1,7 +1,8 @@
 # house-kit
 
 The house kit: what every house web project installs, so that a fix made once
-reaches every project at its next update. The rules for *how* to write code live
+reaches every project at its next update. It carries the practice, never the look:
+each project keeps its own design system, names and colours. The rules for *how* to write code live
 in the `house-code` plugin; this kit carries the code that applies them.
 
 | | |
@@ -9,7 +10,6 @@ in the `house-code` plugin; this kit carries the code that applies them.
 | `house.json` | the house pins: Node, pnpm and the stack versions every project runs |
 | `next.mjs` | `withHouse()`: the Next.js settings learned on Hostinger |
 | `eslint.config.mjs`, `postcss.config.mjs`, `tsconfig.base.json` | the shared settings, each extended by a one-line file in the project |
-| `theme.css`, `src/tokens.ts` | the token contract: the kit fixes the names, each project its values |
 | `src/utils.ts` | the shared helpers (`cn`) |
 | `bin/house-kit.mjs` | `init` starts a project, `check` tests the contract |
 | `template/` | what `init` writes |
@@ -21,6 +21,21 @@ pnpm dlx @flutgraben/house-kit init my-project
 ```
 
 Then `cd my-project`, `git init`, `pnpm install`, `pnpm gates`, `pnpm dev`.
+
+## Colours: one home, never a shared look
+
+`house-kit check` keeps raw colour values in the project's own colour files and
+nowhere else. The project names them in its `package.json`; `init` writes the
+starter's:
+
+```json
+"house-kit": { "colours": ["src/app/globals.css"] }
+```
+
+A project with its own colour lint rule names that rule instead, and the check
+confirms the rule is switched on: `"house-kit": { "colourLint": "my-rule" }`.
+The starter's tokens (`src/app/globals.css`, `src/lib/tokens.ts`) belong to the
+new project from the first day: rename or replace them as its design asks.
 
 ## Update a project
 
