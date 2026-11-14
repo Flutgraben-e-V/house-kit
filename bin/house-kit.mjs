@@ -9,7 +9,7 @@
 // never the exit code alone.
 
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -52,6 +52,9 @@ function init(list) {
   mkdirSync(target, { recursive: true });
   cpSync(join(KIT_DIR, 'template'), target, { recursive: true });
   renameSync(join(target, 'gitignore'), join(target, '.gitignore'));
+  // The published package drops the executable bit (pnpm pack writes every file that is
+  // not a bin as 0644), and git silently skips a hook it cannot execute.
+  chmodSync(join(target, '.githooks/pre-push'), 0o755);
   for (const file of walk(target)) {
     const text = readFileSync(file, 'utf8');
     if (text.includes('__NAME__')) writeFileSync(file, text.replaceAll('__NAME__', name));
@@ -149,7 +152,28 @@ function check() {
   }
   report('languages', langProblems, failed);
 
-  // 4. A newer kit: said, never failed (updating is a choice, not a defect).
+  // 4. The pre-push hook: the only gate before a push (there is no CI). Git skips it without
+  //    a word when it is missing, not executable, or not where git looks for hooks, and a
+  //    clone elsewhere gets it non-executable when git recorded it without the bit.
+  const hook = join(root, '.githooks/pre-push');
+  const hookProblems = [];
+  const git = (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  const gitOr = (fallback, ...a) => { try { return git(...a); } catch { return fallback; } };
+  if (!existsSync(hook)) hookProblems.push('.githooks/pre-push is missing, so nothing runs pnpm gates before a push');
+  else if (!(statSync(hook).mode & 0o111)) hookProblems.push('.githooks/pre-push is not executable, so git skips it and pnpm gates never runs on push. Fix: chmod +x .githooks/pre-push && git update-index --chmod=+x .githooks/pre-push');
+  const top = gitOr('', 'rev-parse', '--show-toplevel');
+  if (!top) console.log('ℹ not a git repository yet, so the hook wiring is not checked.');
+  else if (existsSync(hook)) {
+    const hooksPath = gitOr('', 'config', '--get', 'core.hooksPath');
+    const wanted = realpathSync(join(root, '.githooks'));
+    const actual = hooksPath && existsSync(resolve(top, hooksPath)) ? realpathSync(resolve(top, hooksPath)) : '';
+    if (actual !== wanted) hookProblems.push(`git looks for hooks in ${hooksPath || '.git/hooks'}, not .githooks, so the pre-push hook never runs. Fix: git config core.hooksPath .githooks (pnpm install does it once git exists)`);
+    const recorded = gitOr('', 'ls-files', '-s', '--', '.githooks/pre-push').split(' ')[0];
+    if (recorded && recorded !== '100755') hookProblems.push(`git records .githooks/pre-push as ${recorded}, so every other clone gets it non-executable. Fix: git update-index --chmod=+x .githooks/pre-push, then commit`);
+  }
+  report('hook', hookProblems, failed);
+
+  // 5. A newer kit: said, never failed (updating is a choice, not a defect).
   try {
     const newest = execFileSync('npm', ['view', KIT.name, 'version'], { encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'] })
       .trim().split('.').map(Number);
